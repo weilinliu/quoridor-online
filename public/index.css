@@ -1,0 +1,462 @@
+* {
+   box-sizing: border-box;
+   margin: 0;
+   padding: 0;
+   font-family: sans-serif;
+}
+
+html, body {
+    height: 100vh;
+    background-color: #8ee4af;
+}
+
+#page-lobby {
+    display: none;
+}
+
+#username {
+    border: none;
+    border-bottom: 2px solid #379683;
+    background-color: #8ee4af;
+    color: #05386b;
+    display: block;
+    margin: auto;
+    font-size: 40px;
+    width: 60%;
+    text-align: center;
+}
+
+#button-login {
+    display: block;
+    width: 60%;
+    margin: 10px auto;
+    font-size: 30px;
+    padding: 5px 0;
+    border: none;
+    background-color: #379683;
+    color: #edf5e1;
+}
+
+#page-login {
+    width: 100%;
+    background-color: #8ee4af;
+}
+
+#container-login {
+    height: fit-content;
+    width: 70%;
+    margin: auto;
+    padding-top: 5vh;
+}
+
+#logo {
+    font-size: 0;
+    width: 70%;
+    background-color: #8ee4af;
+    padding-top: 8vh;
+    margin: auto;
+}
+
+.logo-font {
+    background-color: #05386b;
+}
+
+.square-logo {
+    width: 1.408%;
+    padding-top: 1.408%;
+    display: inline-block;
+}
+
+.horizontal-logo {
+    width: 5.632%;
+    padding-top: 1.408%;
+    display: inline-block;
+}
+
+.vertical-logo {
+    width: 1.408%;
+    padding-top: 5.632%;
+    display: inline-block;
+}
+
+.cell-logo {
+    width: 5.632%;
+    padding-top: 5.632%;
+    display: inline-block;
+}
+
+#userLabel {
+    width: 100%;
+    text-align: center;
+    font-size: 4vw;
+    color: #05386b;
+}
+
+#vs {
+    width: 100%;
+    text-align: center;
+    font-size: 2.5vw;
+    padding: 1vh 0;
+    color: #edf5e1
+}
+
+#userList {
+    width: 70%;
+    height: 30vh;
+    margin: 0 auto;
+    overflow: auto;
+    background-color: #edf5e1;
+}
+
+.player-button {
+    font-size: 2.5vw;
+    width: 20%;
+    padding: 10px 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    background-color: #379683;
+    color: #edf5e1;
+    border: none;
+}
+
+#no-player {
+    font-size: 2.5vw;
+    width: 100%;
+    padding: 10px 5px;
+    text-align: center;
+    color: #05386b;
+}
+
+#page-game {
+    display: none;
+    grid-template-columns: 30% 35% 35%;
+    padding: 0;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+}
+
+.section-right {
+    grid-template-rows: 40% 60%;
+}
+
+#container-dialog {
+    display: none;
+}
+
+#container-chat {
+    width: 80%;
+    margin: 0 auto;
+    display: grid;
+}
+
+.centerPoint {
+    /* border: 3px solid black;
+    width: fit-content;
+    height: fit-content;
+    padding: 10px; */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* display: none; */
+}
+
+.grid-item {
+    background-color: #8ee4af;
+    display: grid;
+}
+
+#chat {
+    height: fit-content;
+    margin: 0;
+}
+
+#chat-header {
+    width: 100%;
+    text-align: center;
+    margin: 0;
+    padding: 5px 0;
+    background-color: #379683;
+    color: white;
+}
+
+.chat-body {
+    background-color: #edf5e1;
+}
+
+#output {
+    height: 40vh;
+    width: 100%;
+    overflow: auto;
+    border-bottom: 1px solid #379683;
+    min-height: 160px;
+}
+
+::-webkit-scrollbar-track
+{
+	background-color: #edf5e1;
+}
+
+::-webkit-scrollbar
+{
+	width: 6px;
+}
+
+::-webkit-scrollbar-thumb
+{
+	background-color: #379683;
+}
+
+#message {
+    width: 85%;
+    height: 28px;
+    border: none;
+    padding: 0 5px;
+    font-size: 12px;
+    background-color: #edf5e1;
+}
+
+.myMessage {
+    float: right;
+    width: fit-content;
+    max-width: 70%;
+    text-align: left;
+    padding: 8px;
+    margin: 5px 5px 5px;
+    font-size: 12px;
+    justify-content: left;
+    background-color: #5cdb95;
+    border-radius: 10px 10px 0 10px;
+    clear: both;
+}
+
+.opponentMessage {
+    float:left;
+    clear: both;
+    width: fit-content;
+    max-width: 70%;
+    padding: 8px;
+    margin: 5px 0 5px 5px;
+    font-size: 12px;
+    background-color: #FFF;
+    border-radius: 10px 10px 10px 0;
+}
+
+#send {
+    background-color: #379683;
+    border: none;
+    color: white;
+    width: 15%;
+    height: 28px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #05386b;
+}
+
+dialog {
+    display: block;
+    position: relative;
+    font-size: 4vmin;
+    padding: 10px 25px;
+    background-color: #edf5e1;
+    color: #05386b
+}
+
+#dialog-options {
+    width: 100%;
+    text-align: center;
+
+}
+
+#dialog-options button {
+    font-size: 4vmin;
+    padding: 3px 8px;
+    margin: 2vmin;
+    margin-bottom: 0;
+    border: none;
+    background-color: #379683;
+    color: #edf5e1;
+}
+
+#dialog-options button:hover {
+    background-color: #05386b;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+
+/*****************************
+*           Game            *
+*****************************/
+#container-game {
+   width: 100%;
+   height: fit-content;
+   margin: auto;
+   border: 2px outset #edf5e1;
+}
+
+#board {
+   width: 100%;
+   height: fit-content;
+   font-size: 0; /* remove the space between inline-block elements */
+}
+
+.cell {
+    width: 9.08%;
+    padding-top: 9.08%;
+    background-color: #5cdb95;
+    display: inline-block;
+}
+
+.vertical-slot {
+    width: 2.27%;
+    padding-top: 9.08%;
+    background-color: #edf5e1;
+    display: inline-block;
+}
+
+.horizontal-slot {
+    width: 9.08%;
+    padding-top: 2.27%;
+    background-color: #edf5e1;
+    display: inline-block;
+}
+
+.square-slot {
+    width: 2.27%;
+    padding-top: 2.27%;
+    background-color: #edf5e1;
+    display: inline-block;
+}
+
+.slot-valid-hover {
+    background-color: rgba(5, 56, 107, 0.7);
+}
+
+.slot-invalid-hover {
+    background-color: rgba(255, 0, 0, 0.5);
+}
+
+.isWall {
+    background-color: #05386b;
+}
+
+.cell-hover {
+   background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.7) 0, rgba(255, 255, 255, 0.7) 60%, transparent 60%) !important;
+}
+
+.neighbor {
+   background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0, rgba(255, 255, 255, 0.3) 60%, transparent 60%);
+}
+
+.myPawn {
+    background-image: radial-gradient(circle at 50% 50%, #FFF 0, #FFF 60%, transparent 60%);
+}
+
+.opponentPawn {
+    background-image: radial-gradient(circle at 50% 50%, #000 0, #000 60%, transparent 60%);
+}
+
+/*************************
+ *       Game Info       *
+ *************************/
+#container-info {
+    display: grid;
+    width: 80%;
+    margin: 0 auto;
+    grid-template-columns: 50% 50%;
+}
+
+.info {
+    display: grid;
+    width:95%;
+    height: fit-content;
+}
+
+#opponent-info {
+    margin: auto 5% auto 0;
+}
+
+#my-info {
+    margin: auto 0 auto 5%;
+}
+
+.player-name {
+    width: 100%;
+    text-align: center;
+    background-color: #5cdb95;
+    padding: 5px 0;
+    color: #edf5e1;
+    font-size: 2vw;
+}
+
+.timer {
+    width: 100%;
+    text-align: center;
+    background-color: #5cdb95;
+    font-size: 4vw;
+    padding: 5px 0;
+    color: #edf5e1;
+}
+
+.warning {
+    color: red;
+}
+
+.wall-count {
+    width: 100%;
+    text-align: center;
+    background-color: #edf5e1;
+    font-size: 4vw;
+}
+
+.myTurn {
+    background-color: #379683;
+}
+
+/**********************
+ *     Game manu      *
+ **********************/
+#container-manu {
+    width: 80%;
+    margin: auto;
+}
+
+#manu-header {
+    width: 100%;
+    text-align: center;
+    background-color: #379683;
+    color: #edf5e1;
+    padding: 8px;
+    font-size: 3vw;
+}
+
+#rule {
+    width: 100%;
+    background-color: #edf5e1;
+    height: 55vh;
+    overflow: auto;
+}
+
+#retract,
+#rematch,
+#exit {
+    width: 100%;
+    text-align: center;
+    background-color: #379683;
+    color: #edf5e1;
+    padding: 5px;
+    font-size: 1.8vw;
+}

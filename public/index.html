@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Quoridor</title>
+        <link rel="stylesheet" href="index.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+        <script src="quoridor.js"></script>
+        <script src="quoridor-logic.js"></script>
+        
+    </head>
+    <body>
+        <div id="logo"></div>
+        <div id="page-login">
+            <div id="container-login">
+                <input id="username">
+                <button id="button-login" onclick="login()">Login</button>
+            </div>
+        </div>
+        <div id="page-lobby">
+            <p id='userLabel'></p>
+            <p id="vs">VS</p>
+            <div id="userList">
+                No users online
+            </div>
+        </div>
+        <div id="page-game">
+            <div class="grid-item">
+                <div id="container-manu">
+                    <h1 id="manu-header">步步为营</h1>
+                    <div id="rule">
+                        <p><Strong>Object of the Game</Strong><br>
+                            To be the first to reach the line opposite to one's base line.<br>
+                            <strong>Game play</strong><br>
+                            Each player in turn, chooses to move his pawn or to put up one of his fences. When he has run out of fences, the player must move his pawn.<br>
+                            <strong>Pawn Moves</strong><br>
+                            The pawns are moved one square at a time, horizontally or vertically, forwards or backwards, never diagonally (fig.2).<br>
+                        </p>
+                    </div>
+                    <div id="retract">Retract</div>
+                    <div id="rematch">Rematch</div>
+                    <div id="exit" onclick="exitGamePage()">Exit</div>
+                </div>
+            </div>
+            <div class="grid-item section-game">
+                <div id="container-game"></div>
+            </div>
+            <div class="grid-item section-right">
+                <div id="container-info">
+                    <div class="info" id="opponent-info">
+                        <h2 class="player-name" id="opponent-name"></h2>
+                        <p class="timer" id="opponent-timer">01:00</p>
+                        <h1 class="wall-count" id="opponent-wallcount"></h1>
+                    </div>
+                    <div class="info" id="my-info">
+                        <h2 class="player-name" id="my-name">You</h2>
+                        <p class="timer" id="my-timer">01:00</p>
+                        <h1 class="wall-count" id="my-wallcount"></h1>
+                    </div>
+                </div>
+                <div id="container-chat">
+                    <div id="chat"></div>
+                </div>
+            </div>
+        </div>
+        <div class="centerPoint" id="container-dialog">
+    
+        </div>
+
+        
+    </body>
+    <script>
+        var logo = document.getElementById('logo');
+        var temp = 0;
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 15; j++) {
+                const square = document.createElement('DIV');
+                square.classList.add('square-logo');
+                square.setAttribute('id', `logo-${temp}`);
+                logo.appendChild(square);
+                temp++;
+                
+                if (j < 14) {
+                    const hBlock = document.createElement('DIV');
+                    hBlock.classList.add('horizontal-logo');
+                    hBlock.setAttribute('id', `logo-${temp}`);
+                    logo.appendChild(hBlock);
+                    temp++;
+                }
+            }
+
+            if (i < 3) {
+                for (let j = 0; j < 15; j++) {
+                    const vBlock = document.createElement('DIV');
+                    vBlock.classList.add('vertical-logo');
+                    vBlock.setAttribute('id', `logo-${temp}`);
+                    logo.appendChild(vBlock);
+                    temp++;
+            
+                    if (j < 14) {
+                        const cell = document.createElement('DIV');
+                        cell.classList.add('cell-logo');
+                        cell.setAttribute('id', `logo-${temp}`);
+                        logo.appendChild(cell);
+                        temp++;
+                    }
+                }
+            }
+        }
+
+        const drawLogo = function () {
+            // draw q
+            document.getElementById('logo-58').classList.add('logo-font');
+            document.getElementById('logo-59').classList.add('logo-font');
+            document.getElementById('logo-60').classList.add('logo-font');
+            document.getElementById('logo-89').classList.add('logo-font');
+            document.getElementById('logo-118').classList.add('logo-font');
+            document.getElementById('logo-147').classList.add('logo-font');
+            document.getElementById('logo-176').classList.add('logo-font');
+            document.getElementById('logo-117').classList.add('logo-font');
+            document.getElementById('logo-116').classList.add('logo-font');
+            document.getElementById('logo-87').classList.add('logo-font');
+
+
+            // draw u
+            document.getElementById('logo-62').classList.add('logo-font');
+            document.getElementById('logo-91').classList.add('logo-font');
+            document.getElementById('logo-120').classList.add('logo-font');
+            document.getElementById('logo-121').classList.add('logo-font');
+            document.getElementById('logo-122').classList.add('logo-font');
+            document.getElementById('logo-93').classList.add('logo-font');
+            document.getElementById('logo-64').classList.add('logo-font');
+
+            // draw o
+            document.getElementById('logo-66').classList.add('logo-font');
+            document.getElementById('logo-95').classList.add('logo-font');
+            document.getElementById('logo-124').classList.add('logo-font');
+            document.getElementById('logo-125').classList.add('logo-font');
+            document.getElementById('logo-126').classList.add('logo-font');
+            document.getElementById('logo-97').classList.add('logo-font');
+            document.getElementById('logo-68').classList.add('logo-font');
+            document.getElementById('logo-67').classList.add('logo-font');
+
+            // draw r
+            document.getElementById('logo-128').classList.add('logo-font');
+            document.getElementById('logo-99').classList.add('logo-font');
+            document.getElementById('logo-70').classList.add('logo-font');
+            document.getElementById('logo-71').classList.add('logo-font');
+            document.getElementById('logo-72').classList.add('logo-font');
+
+
+            // draw i
+            document.getElementById('logo-74').classList.add('logo-font');
+            document.getElementById('logo-103').classList.add('logo-font');
+            document.getElementById('logo-132').classList.add('logo-font');
+
+            // draw d
+            document.getElementById('logo-76').classList.add('logo-font');
+            document.getElementById('logo-77').classList.add('logo-font');
+            document.getElementById('logo-78').classList.add('logo-font');
+            document.getElementById('logo-49').classList.add('logo-font');
+            document.getElementById('logo-20').classList.add('logo-font');
+            document.getElementById('logo-107').classList.add('logo-font');
+            document.getElementById('logo-136').classList.add('logo-font');
+            document.getElementById('logo-135').classList.add('logo-font');
+            document.getElementById('logo-134').classList.add('logo-font');
+            document.getElementById('logo-105').classList.add('logo-font');
+        
+            // draw o
+            document.getElementById('logo-80').classList.add('logo-font');
+            document.getElementById('logo-81').classList.add('logo-font');
+            document.getElementById('logo-82').classList.add('logo-font');
+            document.getElementById('logo-111').classList.add('logo-font');
+            document.getElementById('logo-140').classList.add('logo-font');
+            document.getElementById('logo-139').classList.add('logo-font');
+            document.getElementById('logo-138').classList.add('logo-font');
+            document.getElementById('logo-109').classList.add('logo-font');
+        
+            // draw r
+            document.getElementById('logo-142').classList.add('logo-font');
+            document.getElementById('logo-113').classList.add('logo-font');
+            document.getElementById('logo-84').classList.add('logo-font');
+            document.getElementById('logo-85').classList.add('logo-font');
+            document.getElementById('logo-86').classList.add('logo-font');
+        }
+
+        drawLogo();
+    </script>
+</html>
