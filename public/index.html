@@ -12,7 +12,7 @@
         <div id="logo"></div>
         <div id="page-login">
             <div id="container-login">
-                <input id="username">
+                <input id="username" autofocus>
                 <button id="button-login" onclick="login()">Login</button>
             </div>
         </div>
@@ -28,17 +28,34 @@
                 <div id="container-manu">
                     <h1 id="manu-header">步步为营</h1>
                     <div id="rule">
-                        <p><Strong>Object of the Game</Strong><br>
-                            To be the first to reach the line opposite to one's base line.<br>
-                            <strong>Game play</strong><br>
-                            Each player in turn, chooses to move his pawn or to put up one of his fences. When he has run out of fences, the player must move his pawn.<br>
-                            <strong>Pawn Moves</strong><br>
-                            The pawns are moved one square at a time, horizontally or vertically, forwards or backwards, never diagonally (fig.2).<br>
-                        </p>
+                        <p><Strong>Object of the Game</Strong></p>
+                            <p>To be the first to reach the line opposite to one's base line.</p>
+                            <p><strong>Game play</strong></p>
+                            <p>Each player in turn, chooses to move his pawn or to put up one of his fences. When he has run out of fences, the player must move his pawn.</p>
+                            <p><strong>Pawn Moves</strong></p>
+                            <p>The pawns are moved one square at a time, horizontally or vertically, forwards or backwards, never diagonally (fig.2).</p>
+                            <img src="img/game2.jpg">
+                            <p>The pawns must bypass the fences (fig.3). If, while you move, you face your opponent's pawn you can jump over.</p>
+                            <img src="img/game3.jpg">
+                            <p><strong>Positioning of the fences</strong></p>
+                            <p>The fences must be placed between 2 sets of 2 squares (fig.4).</p>
+                            <img src="img/game4.jpg">
+                            <p>By placing fences, you force your opponent to move around it and increase the number of moves they need to make. But be careful, you are not allowed to lock up your opponents pawn, it must always be able to reach it's goal by at least one square (fig.5).</p>
+                            <img src="img/game5.jpg">
+                            <p><strong>Face To Face</strong><br></p>
+                            <p>When two pawns face each other on neighboring squares which are not separated by a fence, the player whose turn it is can jump the opponent's pawn (and place himself behind him), thus advancing an extra square (fig.6).</p>
+                            <img src="img/game6.jpg">
+                            <p>If there is a fence behind the said pawn, the player can place his pawn to the left or the right of the other pawn (fig.8 and 9)</p>
+                            <img src="img/game8.jpg">
+                            <img src="img/game9.jpg">
+                            <p><strong>End of the Game</strong></p>
+                            <p>The first player who reaches one of the 9 squares opposite his base line is the winner (fig.7).</p>
+                            <img src="img/game7.jpg">
+                        
                     </div>
-                    <div id="retract">Retract</div>
-                    <div id="rematch">Rematch</div>
-                    <div id="exit" onclick="exitGamePage()">Exit</div>
+                    <div class="manu-button" id="retract">Retract</div>
+                    <div class="manu-button" id="rematch">Rematch</div>
+                    <div class="manu-button" id="exit" onclick="exitGamePage()">Exit</div>
                 </div>
             </div>
             <div class="grid-item section-game">
