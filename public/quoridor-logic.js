@@ -138,6 +138,11 @@ const addGameEventListeners = function() {
                     document.getElementById('my-wallcount').innerText = myWallCount;
                     // clear neighbors
                     toggleNeighbor();
+
+                    document.getElementById('opponent-name').classList.add('myTurn');
+                    document.getElementById('opponent-timer').classList.add('myTurn');
+                    document.getElementById('my-name').classList.remove('myTurn');
+                    document.getElementById('my-timer').classList.remove('myTurn');
                     // stop my timer
                     stopTimer();
                     isMyTurn = false;
@@ -204,6 +209,10 @@ const addGameEventListeners = function() {
                     // stop my timer
                     stopTimer();
                     isMyTurn = false;
+                    document.getElementById('opponent-name').classList.add('myTurn');
+                    document.getElementById('opponent-timer').classList.add('myTurn');
+                    document.getElementById('my-name').classList.remove('myTurn');
+                    document.getElementById('my-timer').classList.remove('myTurn');
                     // start opponent timer
                     startTimer();
                     socket.emit('move', {pawnType: 'vertical-wall',
