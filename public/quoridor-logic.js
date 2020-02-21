@@ -68,19 +68,22 @@ const addGameEventListeners = function() {
         const boardY = Number(cellId[2]);
         cells[i].addEventListener('click', function() {
             if (isMyTurn) {
-                pawnType = 'pawn'
-                console.log(pawnType);
-                console.log("("+ cellId[1] + ", " + cellId[2] + ")");
+                // pawnType = 'pawn'
+                // console.log(pawnType);
+                // console.log("("+ cellId[1] + ", " + cellId[2] + ")");
                 if (isValidPawnMove(boardX, boardY)) {
                     console.log('valid pawn move');
+                    // clear neighbors
                     toggleNeighbor();
+                    // remove and place the pawn to new position
                     document.getElementById(`c-${playerPosition.row}-${playerPosition.col}`).classList.remove('myPawn');
                     cells[i].className = 'cell myPawn';
+                    // update pawn position
                     playerPosition = {x: boardX*2, y: boardY*2, row: boardX, col: boardY};
+                    // stop my timer
                     stopTimer();
                     isMyTurn = false;
-                    // start opponent timer
-                    startTimer();
+
                     document.getElementById('opponent-name').classList.add('myTurn');
                     document.getElementById('opponent-timer').classList.add('myTurn');
                     document.getElementById('my-name').classList.remove('myTurn');
@@ -89,8 +92,12 @@ const addGameEventListeners = function() {
                                          row: boardX,
                                          col: boardY,
                                          opponentId: opponentName});
+                    // check if game over
                     if (isGameOver(boardX, 0)) {
                         displayWin();
+                    } else {
+                        // start opponent timer
+                        startTimer();
                     }
                 }
 
@@ -115,20 +122,26 @@ const addGameEventListeners = function() {
         for(let j = 1; j < 9; j++) {
             const hs = document.getElementById(`hs-${i}-${j}`);
             hs.addEventListener('click', function() {
-                pawnType = 'horizontal-wall';
-                console.log(pawnType + " ("+ i + ", " + j + ")");
+                // pawnType = 'horizontal-wall';
+                // console.log(pawnType + " ("+ i + ", " + j + ")");
                 if (isMyTurn && myWallCount > 0 && isValidHorizontalWallMove(i, j)) {
+                    // add wall to the board
                     document.getElementById(`hs-${i}-${j}`).classList.add('isWall');
                     document.getElementById(`hs-${i}-${j-1}`).classList.add('isWall');
                     document.getElementById(`ss-${i}-${j-1}`).classList.add('isWall');
-
+                    // add wall to the grid
                     grid[i*2+1][j*2].isWall = true;
                     grid[i*2+1][(j-1)*2].isWall = true;
+                    // decreament my wall count
                     myWallCount--;
+                    // display new wall count
                     document.getElementById('my-wallcount').innerText = myWallCount;
+                    // clear neighbors
                     toggleNeighbor();
+                    // stop my timer
                     stopTimer();
                     isMyTurn = false;
+                    // start opponent's timer
                     startTimer();
                     socket.emit('move', {pawnType: 'horizontal-wall',
                                          row: i,
@@ -169,11 +182,11 @@ const addGameEventListeners = function() {
     // add event listener to vertical slots
     for (let i = 1; i < 9; i++) {
         for (let j = 0; j < 8; j++) {
-            console.log(i + " " + j)
+            //console.log(i + " " + j)
             const vs = document.getElementById(`vs-${i}-${j}`);
             vs.addEventListener('click', function() {
-                pawnType = 'vertical-wall';
-                console.log(pawnType + " ("+ i + ", " + j + ")");
+                // pawnType = 'vertical-wall';
+                // console.log(pawnType + " ("+ i + ", " + j + ")");
                 if (isMyTurn && myWallCount > 0 && validateVerticalWallMove(i, j)) {
                     // put wall on the board
                     document.getElementById(`vs-${i}-${j}`).classList.add('isWall');
@@ -182,8 +195,11 @@ const addGameEventListeners = function() {
                     // put wall on the grid
                     grid[i*2][j*2+1].isWall = true;
                     grid[(i-1)*2][j*2+1].isWall = true;
+                    // decrement my wall count
                     myWallCount--;
+                    // display new wall count
                     document.getElementById('my-wallcount').innerText = myWallCount;
+                    // clear the neighbors
                     toggleNeighbor();
                     // stop my timer
                     stopTimer();
@@ -231,10 +247,12 @@ const addGameEventListeners = function() {
  *       Game Logic       *
  **************************/
 
+ // this function checks whether the given position is a valid pawn or not
+ // returns true is valid, else returns false
 const isValidPawnMove = function(positionX, positionY) {
-    console.log(JSON.stringify)
+    //console.log(JSON.stringify)
     //const neighbors = getPawnNeighbors(playerPosition.row, playerPosition.col);
-    console.log(JSON.stringify(neighbors));
+    //console.log(JSON.stringify(neighbors));
     for (let i = 0; i < neighbors.length; i++) {
         if (neighbors[i].x === positionX && neighbors[i].y === positionY) {
             return true;
@@ -243,6 +261,7 @@ const isValidPawnMove = function(positionX, positionY) {
     return false;
 }
 
+// this function toggles the display of neighbors
 const toggleNeighbor = function() {
     //neighbors = getPawnNeighbors(playerPosition.row, playerPosition.col);
     //color neighbors on the board
@@ -252,6 +271,8 @@ const toggleNeighbor = function() {
     }
 }
 
+// this function finds the neighbor of the given pawn position
+// returns a list of neighbors
 const getPawnNeighbors = function(i, j) {
     const neighbors = [];
     // check top neighbors
@@ -365,18 +386,24 @@ const getPawnNeighbors = function(i, j) {
     return neighbors;
 }
 
+// this function checks whether the given position is a valid horizontal wall move or not
+// returns true is valid, else return false
 const isValidHorizontalWallMove = function(i, j) {
     // the wall is broken up into 3 parts
     const firstHalf = document.getElementById(`hs-${i}-${j-1}`);
     const middlePiece = document.getElementById(`ss-${i}-${j-1}`);
     const secondHalf = document.getElementById(`hs-${i}-${j}`);
+    // check whether slots are occupied
     if(firstHalf.classList.contains('isWall') || middlePiece.classList.contains('isWall') || secondHalf.classList.contains('isWall')) {
         return false;
     } else {
+        // check whether there is still a path to win for both player
         return hasPath('horizontal-wall', i, j);
     }
 }
 
+// this function checks whether the given position is a valid vertical wall move or not
+// returns true is valid, else return false
 const validateVerticalWallMove = function(i, j) {
     // the wall is broken up into 3 parts
     const firstHalf = document.getElementById(`vs-${i-1}-${j}`);
@@ -389,6 +416,7 @@ const validateVerticalWallMove = function(i, j) {
     }
 }
 
+// this function creates a new grid
 const initGrid = function() {
     const newGrid = [];
     for (let i = 0; i < 17; i++) {
@@ -401,7 +429,7 @@ const initGrid = function() {
     console.log("Grid initialized");
     return newGrid;
 }
-
+// this is a helper function for initGrid(). it creates a new node for the grid.
 const createNode = function (i, j) {
     const isMyGoal = (i === 0) ? true : false;
     const isOpponentGoal = (i === 16) ? true : false;
@@ -415,6 +443,8 @@ const createNode = function (i, j) {
     });
 }
 
+// this is a helper function for isValidHorizontalWallMove() and validateVerticalWallMove()
+// returns true is both side have a path to win, else return false
 const hasPath = function (pawnType, i, j) {
     // make deep copys of the grid
     const gridCopy1 = JSON.parse(JSON.stringify(grid));
@@ -446,8 +476,10 @@ const hasPath = function (pawnType, i, j) {
     return (isReachableOpponent && isReachablePlayer);
 }
 
+// this is a helper function for hasPath()
 // do bfs on the given position, and returns a boolean value
 // to indicate whether the target row is reachable
+// return true is reachable else return false
 const bfs = function (start, grid, targetRow) {
     queue = [];
     grid[start.x][start.y].isVisited = true;
@@ -491,11 +523,13 @@ const getUnvisitedNeighbors = function (grid, node) {
     return neighbors;
 }
 
-
+// this function check whether the given row position is the target row
+// return true if it is else return false
 const isGameOver = function (boardX, targetRow) {
     return boardX === targetRow;
 }
 
+// this function display win on the board
 const displayWin = function() {
     // clear all the wall
     const slots = document.getElementsByClassName('slot');
@@ -539,6 +573,7 @@ const displayWin = function() {
     document.getElementById('ss-2-6').classList.add("isWall");
 };
 
+// this function display lose on the board
 const displayLose = function () {
     // clear all the wall
     const slots = document.getElementsByClassName('slot');
@@ -592,6 +627,8 @@ const displayLose = function () {
     document.getElementById('ss-3-7').classList.add("isWall");
 }
 
+// this function is a timer
+// it updates the time every second
 function timer() {
     const timerId = (isMyTurn === true) ? 'my-timer' : 'opponent-timer';
     x = setInterval(function () {
@@ -624,11 +661,13 @@ function timer() {
     }, 1000);
 }
 
+// this function starts the timer
 function startTimer() {
 	time = 60;
     timer();
 }
 
+// this function stops and resets the timer
 function stopTimer() {
     clearInterval(x);
     time = 60;

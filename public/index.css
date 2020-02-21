@@ -125,6 +125,10 @@ html, body {
     border: none;
 }
 
+.player-button:disabled {
+    background-color: #05386b;
+}
+
 #no-player {
     font-size: 2.5vw;
     width: 100%;

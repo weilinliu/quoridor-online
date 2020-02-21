@@ -23,42 +23,61 @@ io.on('connection', function(socket) {
 
     function doLogin(socket, userId) {
         socket.userId = userId;
-        console.log(socket.id);
+        // console.log(socket.id);
         if(!users[userId]) {
-            console.log("creating new user");
-            users[userId] = {userId: socket.userId, socketId: socket.id, games:{}};
-        } else {
-            console.log('user found!');
-            users[userId].socketId = socket.id;
-        }
+            console.log("userId available");
+            users[userId] = {socketId: socket.id, game:{opponent: ''}};
 
-        // emit user info back to the user
-        socket.emit('login', {users: Object.keys(lobbyUsers),
-                              games: Object.keys(users[userId].games)});
-        // add user to list of active users
-        lobbyUsers[userId] = socket;
-        // broadcast user to all active users
-        socket.broadcast.emit('joinlobby', socket.userId);
+            // emit user info back to the user
+            socket.emit('login', {
+                users: Object.keys(lobbyUsers),
+            });
+            // add user to list of active users
+            lobbyUsers[userId] = socket;
+            // broadcast user to all active users
+            socket.broadcast.emit('joinlobby', socket.userId);
+        } else {
+            console.log('userId taken!');
+            socket.emit('nameTaken', userId);
+        }
     }
+
+    socket.on('joinlobby', function(userId) {
+        console.log(userId + " joined lobby");
+        lobbyUsers[userId] = socket;
+        socket.broadcast.emit('joinlobby', userId);
+    });
+
+    socket.on('leavelobby', function() {
+        delete lobbyUsers[socket.userId];
+        socket.broadcast.emit('leavelobby', socket.userId);
+    });
 
     socket.on('invite', function(opponentId) {
         console.log('got an invite from: ' + socket.userId + ' --> ' + opponentId);
-        console.log(users[opponentId].socketId);
+        // console.log(users[opponentId].socketId);
         // send invitation to opponent
         io.to(`${users[opponentId].socketId}`).emit('invite', socket.userId);
     });
 
     socket.on('response', function(data) {
-        console.log(data.inviter);
-        console.log(data.response);
+        if (!lobbyUsers[data.inviter]) {
+            if(data.response === true) {
+                socket.emit('unavailable', data.inviter);
+            }
+            return;
+        }
+
+        // console.log(data.inviter);
+        // console.log(data.response);
         if(data.response === true){
-            socket.broadcast.emit('leavelobby', data.inviter);
-            socket.broadcast.emit('leavelobby', socket.userId);
-            delete lobbyUsers[data.inviter];
-            delete lobbyUsers[socket.userId];
+            users[socket.userId].game.opponent = data.inviter;
+            users[data.inviter].game.opponent = socket.userId;
+            socket.emit('available', data.inviter);
         }
         io.to(`${users[data.inviter].socketId}`).emit('response', {opponentId: socket.userId,
                                                                    answer: data.response});
+        
     });
 
     socket.on('chat', function(data) {
@@ -86,6 +105,34 @@ io.on('connection', function(socket) {
             default:;
         }
         io.to(`${users[data.opponentId].socketId}`).emit('move', {pawnType: data.pawnType, row, col});
+    });
+
+    socket.on('exitGame', function(opponent) {
+        console.log(socket.userId + " exited");
+        users[socket.userId].game.opponent = '';
+        users[opponent].game.opponent = '';
+        io.to(`${users[opponent].socketId}`).emit('exitGame', socket.userId);
+    });
+
+    socket.on('rematch', function(opponent) {
+        io.to(`${users[opponent].socketId}`).emit('rematch', socket.userId);
+    });
+
+    socket.on('rematchResponse', function(data) {
+        io.to(`${users[data.opponent].socketId}`).emit('rematchResponse', {opponentName: data.opponent, answer: data.answer});
+    });
+
+    socket.on('disconnect', function() {
+        if (!users[socket.userId]) {
+            return;
+        }
+        if (users[socket.userId].game.opponent !== '') {
+            users[users[socket.userId].game.opponent].game.opponent = '';
+            io.to(`${users[users[socket.userId].game.opponent].socketId}`).emit('exitGame', socket.userId);
+        }
+        delete lobbyUsers[socket.userId];
+        delete users[socket.userId];
+        socket.broadcast.emit('leavelobby', socket.userId);
     });
 });
 

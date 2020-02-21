@@ -1,20 +1,22 @@
 var socket = io("/");
 
-var activeUsers = [];
-var myGames = [];
-var username;
-var opponentName;
+var myGames = [];       // Currently Not In Use
+var username;           // init in login()
+var activeUsers = [];   // init in socket.on('login')
+var opponentName;       // invitee: init in handleOk()
+                        // inviter: init in socket.on('response')
+var isMyTurn;           // invitee: init in handleOk().
+                        // inviter: init in socket.on('response')
 
 var pawnType;
-var opponentPosition = {x: 0, y: 8, row: 0, col: 4};
-var playerPosition = {x:16, y: 8, row: 8, col: 4};
-var grid = [];
-var isMyTurn = false;
-var neighbors = [];
-var myWallCount;
-var opponentWallCount;
-var time;
-var timeOut;
+var opponentPosition;   // init in initGame()
+var playerPosition;     // init in initGame()
+var grid = [];          // init in initGame()
+var neighbors;          // init in initGame()
+var myWallCount;        // init in initGame()
+var opponentWallCount;  // init in initGame()
+var time;               // init in initGame()
+var timeOut;            // init in initGame()
 
 
 
@@ -24,12 +26,15 @@ var timeOut;
  ********************************/
 
 socket.on('login', function(data) {
+    document.getElementById('page-login').style.display = 'none';
+    document.getElementById('page-lobby').style.display = 'block';
     activeUsers = data.users;
     updateUserList();
-
-    myGames = data.games;
-    //updateGamesList();
 });
+
+socket.on('nameTaken', function(name) {
+    alert(name + ' is currently taken. Please try another username.');
+})
 
 socket.on('joinlobby', function(newActiveUserId) {
     activeUsers.push(newActiveUserId);
@@ -44,13 +49,22 @@ socket.on('invite', function(inviterUsername) {
 socket.on('response', function(data) {
     if(data.answer === true) {
         console.log(data.opponentId + 'confirmed');
+        socket.emit('leavelobby');
         isMyTurn = true;
         
         opponentName = data.opponentId;
-        enterGamePage(data.opponentId);
+        enterGamePage();
         startTimer();
     } else {
         console.log(data.opponentId + 'canceled');
+        alert(data.opponentId + ' declined your invitation. :(');
+        const playerButtons = document.getElementsByClassName('player-button');
+        for (let i = 0; i < playerButtons.length; i++) {
+            if (playerButtons[i].innerText === data.opponentId) {
+                playerButtons[i].disabled = false;
+                break;
+            }
+        }
     }
 });
 
@@ -72,6 +86,45 @@ socket.on('chat', function(data) {
     output.scrollTop = output.scrollHeight;
 });
 
+socket.on('unavailable', function(opponentId) {
+    alert(opponentId + " is currently unavailable.");
+});
+
+socket.on('available', function(opponentId) {
+    socket.emit('leavelobby');
+    opponentName = opponentId;
+    
+    isMyTurn = false;
+    enterGamePage();
+    // start opponent timer
+    startTimer();
+});
+
+socket.on('exitGame', function(opponent) {
+    alert(opponent + ' exited.');
+    exitGamePage();
+});
+
+socket.on('rematch', function(opponent) {
+    const rematchButton = document.getElementById('rematch');
+    rematchButton.removeAttribute('onclick');
+    promptRematch(opponent);
+});
+
+socket.on('rematchResponse', function(data) {
+    const rematchButton = document.getElementById('rematch');
+    rematchButton.setAttribute('onclick', 'rematch()');
+    rematchButton.innerText = "Rematch"
+    if (data.answer === true) {
+        stopTimer();
+        isMyTurn = true;
+        enterGamePage();
+        startTimer();
+    } else {
+        alert(opponentName + " declined. :(")
+    }
+})
+
 
 /*******************************
  *            Manus            *
@@ -85,8 +138,6 @@ function login() {
 
         // emit to server
         socket.emit('login', username);
-        document.getElementById('page-login').style.display = 'none';
-        document.getElementById('page-lobby').style.display = 'block';
     }
 }
 
@@ -100,6 +151,7 @@ const updateUserList = function() {
         userBtn.innerHTML = user;
         // on click, send an invite to this user
         userBtn.addEventListener("click", function() {
+            this.disabled = true;
             socket.emit('invite', user);
         });
         // append to DOM
@@ -156,28 +208,27 @@ const handleOk = function(username) {
     var dialogContainer = document.getElementById('container-dialog');
     dialogContainer.innerHTML = '';
     dialogContainer.display = 'none';
-    opponentName = username;
-    
-    isMyTurn = false;
-    enterGamePage(username);
-    // start opponent timer
-    startTimer();
+
     socket.emit('response', {inviter: username,
                              response: true});
 }
 
-const enterGamePage = function(opponentId) {
+const enterGamePage = function() {
     document.getElementById('page-lobby').style.display = 'none';
     document.getElementById('logo').style.display = 'none';
-    initChat(opponentId);
-    initGame(opponentId);
+    initChat();
+    initGame();
     document.getElementById('page-game').style.display = 'grid';
 }
 
-const exitGamePage = function () {
-    socket.emit('login', username);
-    stopTimer();
+const quit = function() {
+    socket.emit('exitGame', opponentName);
+    exitGamePage();
+}
 
+const exitGamePage = function () {
+    
+    stopTimer();
     document.getElementById('opponent-timer').className = 'timer';
     document.getElementById('my-timer').className = 'timer';
 
@@ -188,12 +239,73 @@ const exitGamePage = function () {
     document.getElementById('page-game').style.display = 'none';
     document.getElementById('logo').style.display = 'block';
     document.getElementById('page-lobby').style.display = 'block';
+    socket.emit('joinlobby', username);
+}
+
+const rematch = function () {
+    const rematchButton = document.getElementById('rematch');
+    rematchButton.removeAttribute('onclick');
+    rematchButton.innerText = "Awaiting Response..."
+    socket.emit('rematch', opponentName);
+}
+
+const promptRematch = function(username) {
+    var dialogContainer = document.getElementById('container-dialog');
+
+    var dialogMessage = document.createElement('P');
+    dialogMessage.innerHTML = username + " requested a rematch.";
+
+    var cancelButton = document.createElement('BUTTON');
+    cancelButton.innerHTML = "Cancel";
+    var okButton = document.createElement('BUTTON');
+    okButton.innerHTML = "OK";
+
+    cancelButton.addEventListener("click", function() {rematchCancel(username)});
+    okButton.addEventListener("click", function() {rematchOk(username)});
+
+    var containerBtns = document.createElement("DIV");
+    containerBtns.setAttribute('id', 'dialog-options');
+    containerBtns.appendChild(cancelButton);
+    containerBtns.appendChild(okButton);
+
+    var dialog = document.createElement('DIALOG');
+    dialog.appendChild(dialogMessage);
+    dialog.appendChild(containerBtns);
+
+    dialogContainer.appendChild(dialog);
+    dialogContainer.style.display = 'block';
+ }
+
+const rematchCancel = function(username) {
+    console.log('cancel ' + username);
+    var dialogContainer = document.getElementById('container-dialog');
+    dialogContainer.innerHTML = '';
+    dialogContainer.display = 'none';
+
+    const rematchButton = document.getElementById('rematch');
+    rematchButton.setAttribute('onclick', 'rematch()');
+    socket.emit('rematchResponse', {opponent: username, answer: false});
+ }
+
+const rematchOk = function(username) {
+    console.log('ok ' + username);
+    var dialogContainer = document.getElementById('container-dialog');
+    dialogContainer.innerHTML = '';
+    dialogContainer.display = 'none';
+
+    const rematchButton = document.getElementById('rematch');
+    rematchButton.setAttribute('onclick', 'rematch()');
+    socket.emit('rematchResponse', {opponent: username, answer: true});
+    stopTimer();
+    isMyTurn = false;
+    enterGamePage();
+    startTimer();
 }
 
 /*********************************
  *             Chat              *
  *********************************/
-const initChat = function(opponentId) {
+const initChat = function() {
     // creating text input box
     var message = document.createElement("INPUT");
     message.setAttribute('id', 'message');
@@ -214,7 +326,7 @@ const initChat = function(opponentId) {
     sendBtn.innerHTML = "Send"
     sendBtn.setAttribute('id', 'send');
     sendBtn.addEventListener('click', function(){
-        sendMessage(opponentId);
+        sendMessage();
     });
 
     // creating message output window
@@ -237,7 +349,7 @@ const initChat = function(opponentId) {
     
 }
 
-const sendMessage = function(opponentId) {
+const sendMessage = function() {
     const message = document.getElementById('message');
     if(message.value.length > 0) {
         const p = document.createElement('P');
@@ -246,7 +358,7 @@ const sendMessage = function(opponentId) {
         const output = document.getElementById("output");
         output.appendChild(p);
         output.scrollTop = output.scrollHeight;
-        socket.emit('chat', {message: message.value, to: opponentId});
+        socket.emit('chat', {message: message.value, to: opponentName});
         message.value = '';
     }
 }
@@ -295,6 +407,7 @@ const initBoard = function() {
 
 
     const gameContainer = document.getElementById('container-game');
+    gameContainer.innerHTML = '';
     gameContainer.appendChild(board);
 
     // place pawns
@@ -302,39 +415,50 @@ const initBoard = function() {
     document.getElementById('c-8-4').classList.add('myPawn');
 };
 
-const initGame = function(opponentId) {
+const initGame = function() {
     initBoard();
     grid = initGrid();
     myWallCount = 10;
     opponentWallCount = 10;
     time = 60;
     timeOut = false;
-    neighbors = [];
     opponentPosition = {x: 0, y: 8, row: 0, col: 4};
     playerPosition = {x:16, y: 8, row: 8, col: 4};
+    neighbors = getPawnNeighbors(playerPosition.row, playerPosition.col);
     initGameInfo();
     addGameEventListeners();
-    neighbors = getPawnNeighbors(playerPosition.row, playerPosition.col);
-    if(isMyTurn){
-        document.getElementById('my-name').classList.add('myTurn');
-        document.getElementById('my-timer').className = 'timer myTurn';
-        document.getElementById('opponent-timer').className = 'timer';
-        document.getElementById('opponent-name').classList.remove('myTurn');
-        toggleNeighbor();
-    } else {
-        document.getElementById('opponent-name').classList.add('myTurn');
-        document.getElementById('opponent-timer').className = 'timer myTurn';
-        document.getElementById('my-timer').className = 'timer';
-        document.getElementById('my-name').classList.remove('myTurn');
-    }
 }
 
 const initGameInfo = function () {
-    document.getElementById('opponent-name').innerText = opponentName;
-    document.getElementById('opponent-wallcount').innerText = opponentWallCount;
-    document.getElementById('my-wallcount').innerText = myWallCount;
-    document.getElementById('opponent-timer').innerText = "01:00";
-    document.getElementById('my-timer').innerText = "01:00";
-    document.getElementById('opponent-name').className = 'player-name';
-    document.getElementById('my-name').className = 'player-name';
+    const opponentNameDisplay = document.getElementById('opponent-name');
+    const opponentWallCountDisplay = document.getElementById('opponent-wallcount');
+    const opponentTimerDisplay = document.getElementById('opponent-timer');
+
+    const myNameDisplay = document.getElementById('my-name');
+    const myWallCountDisplay = document.getElementById('my-wallcount');
+    const myTimerDisplay = document.getElementById('my-timer');
+
+    opponentNameDisplay.innerText = opponentName;
+    opponentWallCountDisplay.innerText = opponentWallCount;
+    opponentTimerDisplay.innerText = "01:00";
+
+    myWallCountDisplay.innerText = myWallCount;
+    myTimerDisplay.innerText = "01:00";
+
+    // reset the class lists of timer and player name
+    opponentNameDisplay.className = 'player-name';
+    myNameDisplay.className = 'player-name';
+
+    if(isMyTurn){
+        myNameDisplay.classList.add('myTurn');
+        myTimerDisplay.className = 'timer myTurn';
+        opponentTimerDisplay.className = 'timer';
+        opponentNameDisplay.classList.remove('myTurn');
+        toggleNeighbor();
+    } else {
+        opponentNameDisplay.classList.add('myTurn');
+        opponentTimerDisplay.className = 'timer myTurn';
+        myTimerDisplay.className = 'timer';
+        myNameDisplay.classList.remove('myTurn');
+    }
 }
