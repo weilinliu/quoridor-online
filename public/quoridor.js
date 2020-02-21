@@ -108,6 +108,8 @@ socket.on('exitGame', function(opponent) {
 socket.on('rematch', function(opponent) {
     const rematchButton = document.getElementById('rematch');
     rematchButton.removeAttribute('onclick');
+    const exitButton = document.getElementById('exit');
+    exitButton.removeAttribute('onclick');
     promptRematch(opponent);
 });
 
@@ -115,6 +117,9 @@ socket.on('rematchResponse', function(data) {
     const rematchButton = document.getElementById('rematch');
     rematchButton.setAttribute('onclick', 'rematch()');
     rematchButton.innerText = "Rematch"
+
+    const exitButton = document.getElementById('exit');
+    exitButton.setAttribute('onclick', 'quit()');
     if (data.answer === true) {
         stopTimer();
         isMyTurn = true;
@@ -198,7 +203,7 @@ const handleCancel = function(username) {
     console.log('cancel ' + username);
     var dialogContainer = document.getElementById('container-dialog');
     dialogContainer.innerHTML = '';
-    dialogContainer.display = 'none';
+    dialogContainer.style.display = 'none';
     socket.emit('response', {inviter: username,
                              response: false});
  }
@@ -207,7 +212,7 @@ const handleOk = function(username) {
     console.log('ok ' + username);
     var dialogContainer = document.getElementById('container-dialog');
     dialogContainer.innerHTML = '';
-    dialogContainer.display = 'none';
+    dialogContainer.style.display = 'none';
 
     socket.emit('response', {inviter: username,
                              response: true});
@@ -246,6 +251,8 @@ const rematch = function () {
     const rematchButton = document.getElementById('rematch');
     rematchButton.removeAttribute('onclick');
     rematchButton.innerText = "Awaiting Response..."
+    const exitButton = document.getElementById('exit');
+    exitButton.removeAttribute('onclick');
     socket.emit('rematch', opponentName);
 }
 
@@ -253,15 +260,12 @@ const promptRematch = function(username) {
     var dialogContainer = document.getElementById('container-dialog');
 
     var dialogMessage = document.createElement('P');
-    dialogMessage.innerHTML = username + " requested a rematch.";
+    dialogMessage.innerHTML = username + " requested a rematch (auto reject in 6 seconds).";
 
     var cancelButton = document.createElement('BUTTON');
     cancelButton.innerHTML = "Cancel";
     var okButton = document.createElement('BUTTON');
     okButton.innerHTML = "OK";
-
-    cancelButton.addEventListener("click", function() {rematchCancel(username)});
-    okButton.addEventListener("click", function() {rematchOk(username)});
 
     var containerBtns = document.createElement("DIV");
     containerBtns.setAttribute('id', 'dialog-options');
@@ -274,27 +278,49 @@ const promptRematch = function(username) {
 
     dialogContainer.appendChild(dialog);
     dialogContainer.style.display = 'block';
+
+    var autoReject = setTimeout(function() {
+        console.log('cancel ' + username);
+        var dialogContainer = document.getElementById('container-dialog');
+        dialogContainer.innerHTML = '';
+        dialogContainer.style.display = 'none';
+    
+        const rematchButton = document.getElementById('rematch');
+        rematchButton.setAttribute('onclick', 'rematch()');
+        const exitButton = document.getElementById('exit');
+        exitButton.setAttribute('onclick', 'quit()');
+        socket.emit('rematchResponse', {opponent: username, answer: false});
+    }, 6000);
+
+    cancelButton.addEventListener("click", function() {rematchCancel(username, autoReject)});
+    okButton.addEventListener("click", function() {rematchOk(username, autoReject)});
  }
 
-const rematchCancel = function(username) {
+const rematchCancel = function(username, autoReject) {
+    clearTimeout(autoReject);
     console.log('cancel ' + username);
     var dialogContainer = document.getElementById('container-dialog');
     dialogContainer.innerHTML = '';
-    dialogContainer.display = 'none';
+    dialogContainer.style.display = 'none';
 
     const rematchButton = document.getElementById('rematch');
     rematchButton.setAttribute('onclick', 'rematch()');
+    const exitButton = document.getElementById('exit');
+    exitButton.setAttribute('onclick', 'quit()');
     socket.emit('rematchResponse', {opponent: username, answer: false});
  }
 
-const rematchOk = function(username) {
+const rematchOk = function(username, autoReject) {
+    clearTimeout(autoReject);
     console.log('ok ' + username);
     var dialogContainer = document.getElementById('container-dialog');
     dialogContainer.innerHTML = '';
-    dialogContainer.display = 'none';
+    dialogContainer.style.display = 'none';
 
     const rematchButton = document.getElementById('rematch');
     rematchButton.setAttribute('onclick', 'rematch()');
+    const exitButton = document.getElementById('exit');
+    exitButton.setAttribute('onclick', 'quit()');
     socket.emit('rematchResponse', {opponent: username, answer: true});
     stopTimer();
     isMyTurn = false;

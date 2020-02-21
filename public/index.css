@@ -169,6 +169,7 @@ html, body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    border: 3px solid;
     /* display: none; */
 }
 
@@ -474,7 +475,7 @@ button:focus {
     object-fit: scale-down;
 }
 
-#exit:hover {
+#rematch:hover, #exit:hover {
     background-color: #05386b;
 }
 
